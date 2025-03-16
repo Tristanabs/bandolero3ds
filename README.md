@@ -9,17 +9,13 @@ Tendra mejoras con respecto a Notepad 3ds proximamente.
 # ¿Como instalo bandolero 3ds ?
 Es fácil, simplemente instala el .cia
 
-# Creditos y de más 
+# Creditos
 
 Creado por  Tristanabs
 
 Agradecimiento a Kelonio 3DS https://www.youtube.com/@Kelonio3DS
 
 CREADOR ORIGINAL DE NOTEPAD 3DS https://github.com/RMcTn/Notepad3DS
-# Wiki
-Para saber como instalar la app o otra info visita
-https://github.com/githubbykamestudios/Bandolero_3ds/wiki/Instalación 
-
 
 # Soporte de la aplicación
 Puedes pedir soporte en mi servidor Homebrew Central
