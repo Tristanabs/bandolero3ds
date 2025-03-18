@@ -3,11 +3,14 @@
 </div>
 <img src="https://i.imgur.com/qiutUm0.png">
   
-# ¿Que es bandolero 3ds?
+# ¿Qué es Bandolero 3ds?
 Bandolero 3ds es una aplicacion para 3ds basada en Notepad 3ds que por el momento solo permite visualizar archivos de texto.
 Tendra mejoras con respecto a Notepad 3ds proximamente.
-# ¿Como instalo bandolero 3ds ?
-Es fácil, simplemente instala el .cia
+# ¿Cómo instalo bandolero 3ds ?
+Es fácil, simplemente instala el .cia o escanea el siguiente Código QR
+# Instalación por QR
+<div align="center">
+<img src="https://i.imgur.com/JOyh9WA.png">
 
 # Creditos
 
