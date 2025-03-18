@@ -12,6 +12,7 @@ Es fácil, simplemente instala el .cia o escanea el siguiente Código QR
 <div align="center">
 <img src="https://i.imgur.com/JOyh9WA.png">
 <div align="left">
+
 # Créditos
 Creado por  Tristanabs
 
