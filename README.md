@@ -11,9 +11,8 @@ Es fácil, simplemente instala el .cia o escanea el siguiente Código QR
 # Instalación por QR
 <div align="center">
 <img src="https://i.imgur.com/JOyh9WA.png">
-
-# Creditos
-
+<div align="left">
+# Créditos
 Creado por  Tristanabs
 
 Agradecimiento a Kelonio 3DS https://www.youtube.com/@Kelonio3DS
