@@ -10,7 +10,7 @@
 #define BUFFER_SIZE 1025    //Notepad's line limit + \0
 #define MAX_BOTTOM_SIZE 28
 
-#define VERSION "Bandolero 3DS version 1.0"
+#define VERSION "Bandolero 3Ds version 1.1"
 
 
 PrintConsole topScreen, bottomScreen;

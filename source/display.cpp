@@ -38,6 +38,7 @@ void print_instructions() {
     printf("Manten pulsado L para saltar a la parte superior/final con arriba/abajo\n");
     printf("Pulse DPad o CPad para subir/bajar\n");
 	printf("Pulse START para salir\n");
+    printf("2025(c)Tristanabs");
 }
 
 
@@ -64,7 +65,7 @@ void print_text(const char* str, unsigned int count, unsigned int selected_line)
                 if (count == selected_line)
                     if (str[0] == '\n') {
                         printf(SELECTED_TEXT_COLOUR);
-                        printf("(empty line)");
+                        printf("(vacio)");
                         printf(DEFAULT_TEXT_COLOUR);
                         printf("\n");
                     } else {
