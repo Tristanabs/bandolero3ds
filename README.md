@@ -24,4 +24,4 @@ CREADOR ORIGINAL DE NOTEPAD 3DS https://github.com/RMcTn/Notepad3DS
 Puedes pedir soporte en mi servidor Homebrew Central
 https://dc.gg/hbcentral
 
-[![levelt-donation](https://i.imgur.com/bzMXZHx.png)](https://donate.stripe.com/14k9EG0jigrQg0wbIO) 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/P5P41D6MSN)
