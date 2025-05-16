@@ -1,3 +1,4 @@
-file.o: C:/Users/PC/Desktop/Ban/source/file.cpp \
- C:/Users/PC/Desktop/Ban/source/file.h
-C:/Users/PC/Desktop/Ban/source/file.h:
+file.o: \
+ C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/file.cpp \
+ C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/file.h
+C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/file.h:

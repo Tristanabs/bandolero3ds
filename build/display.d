@@ -1,6 +1,8 @@
-display.o: C:/Users/PC/Desktop/Ban/source/display.cpp \
- C:/Users/PC/Desktop/Ban/source/display.h \
- C:/Users/PC/Desktop/Ban/source/file.h G:/devkitPro/libctru/include/3ds.h \
+display.o: \
+ C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/display.cpp \
+ C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/display.h \
+ C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/file.h \
+ G:/devkitPro/libctru/include/3ds.h \
  G:/devkitPro/libctru/include/3ds/types.h \
  G:/devkitPro/libctru/include/3ds/result.h \
  G:/devkitPro/libctru/include/3ds/ipc.h \
@@ -21,6 +23,9 @@ display.o: C:/Users/PC/Desktop/Ban/source/display.cpp \
  G:/devkitPro/libctru/include/3ds/allocator/mappable.h \
  G:/devkitPro/libctru/include/3ds/allocator/vram.h \
  G:/devkitPro/libctru/include/3ds/services/ac.h \
+ G:/devkitPro/libctru/include/3ds/services/act.h \
+ G:/devkitPro/libctru/include/3ds/services/frd.h \
+ G:/devkitPro/libctru/include/3ds/mii.h \
  G:/devkitPro/libctru/include/3ds/services/am.h \
  G:/devkitPro/libctru/include/3ds/services/fs.h \
  G:/devkitPro/libctru/include/3ds/services/ampxi.h \
@@ -34,8 +39,6 @@ display.o: C:/Users/PC/Desktop/Ban/source/display.cpp \
  G:/devkitPro/libctru/include/3ds/services/dsp.h \
  G:/devkitPro/libctru/include/3ds/services/fspxi.h \
  G:/devkitPro/libctru/include/3ds/services/fsreg.h \
- G:/devkitPro/libctru/include/3ds/services/frd.h \
- G:/devkitPro/libctru/include/3ds/mii.h \
  G:/devkitPro/libctru/include/3ds/services/gsplcd.h \
  G:/devkitPro/libctru/include/3ds/services/hid.h \
  G:/devkitPro/libctru/include/3ds/services/irrst.h \
@@ -85,8 +88,8 @@ display.o: C:/Users/PC/Desktop/Ban/source/display.cpp \
  G:/devkitPro/libctru/include/3ds/font.h \
  G:/devkitPro/libctru/include/3ds/gdbhio_dev.h \
  G:/devkitPro/libctru/include/3ds/3dslink.h
-C:/Users/PC/Desktop/Ban/source/display.h:
-C:/Users/PC/Desktop/Ban/source/file.h:
+C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/display.h:
+C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/file.h:
 G:/devkitPro/libctru/include/3ds.h:
 G:/devkitPro/libctru/include/3ds/types.h:
 G:/devkitPro/libctru/include/3ds/result.h:
@@ -108,6 +111,9 @@ G:/devkitPro/libctru/include/3ds/allocator/linear.h:
 G:/devkitPro/libctru/include/3ds/allocator/mappable.h:
 G:/devkitPro/libctru/include/3ds/allocator/vram.h:
 G:/devkitPro/libctru/include/3ds/services/ac.h:
+G:/devkitPro/libctru/include/3ds/services/act.h:
+G:/devkitPro/libctru/include/3ds/services/frd.h:
+G:/devkitPro/libctru/include/3ds/mii.h:
 G:/devkitPro/libctru/include/3ds/services/am.h:
 G:/devkitPro/libctru/include/3ds/services/fs.h:
 G:/devkitPro/libctru/include/3ds/services/ampxi.h:
@@ -121,8 +127,6 @@ G:/devkitPro/libctru/include/3ds/services/csnd.h:
 G:/devkitPro/libctru/include/3ds/services/dsp.h:
 G:/devkitPro/libctru/include/3ds/services/fspxi.h:
 G:/devkitPro/libctru/include/3ds/services/fsreg.h:
-G:/devkitPro/libctru/include/3ds/services/frd.h:
-G:/devkitPro/libctru/include/3ds/mii.h:
 G:/devkitPro/libctru/include/3ds/services/gsplcd.h:
 G:/devkitPro/libctru/include/3ds/services/hid.h:
 G:/devkitPro/libctru/include/3ds/services/irrst.h:

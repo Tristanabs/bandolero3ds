@@ -45,8 +45,16 @@ int main(int argc, char **argv)
 		u32 kDown = hidKeysDown();
         u32 kHeld = hidKeysHeld();
 
-		if (kDown & KEY_START)
-			break;
+        if (kDown & KEY_START)
+            break;
+        if (kHeld & KEY_SELECT) {
+            print_about();
+        } else {
+            // Limpiar la zona de info cuando se suelta SELECT
+            consoleSelect(&bottomScreen);
+            printf("\x1b[18;0H");
+            printf("                                               ");
+        }
 
 		static SwkbdState swkbd;
 		static char mybuf[BUFFER_SIZE];
@@ -59,7 +67,7 @@ int main(int argc, char **argv)
 
         if (kDown & KEY_A) {
             //Select current line for editing
-            swkbdSetHintText(&swkbd, "Introduzca aqui el texto.");
+            swkbdSetHintText(&swkbd, "Introduce el texto aqui.");
             //Iterator to find current selected line
             auto line = file.lines.begin();
             if (curr_line < file.lines.size())
@@ -85,7 +93,7 @@ int main(int argc, char **argv)
             //Clear buffer
             memset(mybuf, '\0', BUFFER_SIZE);
             //Confirm creating a new file
-            swkbdSetHintText(&swkbd, "¿Esta seguro de que desea abrir un archivo EN BLANCO? y/n"); 
+            swkbdSetHintText(&swkbd, "Seguro que quieres abrir un archivo en blanco? y/n"); 
             button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
             if (mybuf[0] == 'y') {
                 File blankFile;
@@ -93,9 +101,9 @@ int main(int argc, char **argv)
                 curr_line = 0;
                 scroll = 0;
                 update_screen(file, curr_line);
-                print_save_status("Nuevo archivo creado");
+                print_save_status("Archivo nuevo creado");
             } else
-                print_save_status("No se ha creado ningun archivo nuevo");
+                print_save_status("No se creo ningun archivo nuevo");
         }
 
         if (kDown & KEY_R) {
@@ -104,13 +112,13 @@ int main(int argc, char **argv)
             //Clear buffer
             memset(mybuf, '\0', BUFFER_SIZE);
             //Get term to search for
-            swkbdSetHintText(&swkbd, "Introduzca aquí el término de búsqueda."); 
+            swkbdSetHintText(&swkbd, "Introduce el termino de busqueda"); 
             button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
             int line = file.find(mybuf);
             if (line < 0)
-                printf("No se enontró %s", mybuf);
+                printf("No se encontro: %s", mybuf);
             else {
-                printf("Found %s at %d", mybuf, line);
+                printf("Encontrado %s en linea %d", mybuf, line);
                 curr_line = line;
                 if (curr_line > MAX_BOTTOM_SIZE) {
                     scroll = curr_line - MAX_BOTTOM_SIZE;
@@ -144,10 +152,10 @@ int main(int argc, char **argv)
             bool success = write_to_file(filename, file);
             
             if (success) {
-                print_save_status("File written to " + filename);
+                print_save_status("Archivo guardado en " + filename);
                 print_directory_status(filename);
             } else {
-                print_save_status("Failed to write " + filename);
+                print_save_status("No se pudo guardar " + filename);
             }
 
         }
@@ -174,18 +182,19 @@ int main(int argc, char **argv)
             if (file.read_success) {
                 update_screen(file, curr_line);
                 clear_save_status();
-                std::cout << "Abierto correctamente " << filename << std::endl;
-                clear_directory_status();
-                std::cout << "Archivo actual: " << filename;
+                 std::cout << "Archivo abierto correctamente: " << filename << std::endl;
+                 clear_directory_status();
+                 std::cout << "Archivo actual: " << filename;
+                consoleSelect(&bottomScreen);
+                printf("Archivo actual: %s\n", filename);
                 //print_directory_status(filename);
-                consoleSelect(&topScreen);
-                //print_save_status("Successfully opened " + filename);
             } else {
                 file = oldfile;
                 update_screen(file, curr_line);
                 clear_save_status();
-                std::cout << "Fallo al abrir " << filename << std::endl;
-                consoleSelect(&topScreen);
+                 std::cout << "No se pudo abrir: " << filename << std::endl;
+                consoleSelect(&bottomScreen);
+                printf("No se pudo abrir: %s\n", filename);
                 //print_save_status("Failed to open " + filename);
             }
         }

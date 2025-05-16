@@ -38,7 +38,12 @@ void clear_directory_status();
 void print_directory_status(std::string filename);
 
 void print_instructions();
+void print_version(const char* version);
 
-void print_version(std::string version);
+// Muestra la sección Acerca De con información de la app
+void print_about();
+
+//Clears everything off the top screen
+void clear_screen();
 
 std::string char_vec_to_string(std::vector<char>& line);
