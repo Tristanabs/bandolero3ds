@@ -16,6 +16,7 @@
 PrintConsole topScreen, bottomScreen;
 int scroll = 0;
 bool fast_scroll = false;
+bool show_about = false; // Nueva variable para controlar la pestaña
 
 void move_down(File file);
 void move_up(File file);
@@ -27,6 +28,21 @@ int main(int argc, char **argv)
 	gfxInitDefault();
 	consoleInit(GFX_TOP, &topScreen);
     consoleInit(GFX_BOTTOM, &bottomScreen);
+
+    // Pantalla de carga SOLO ASCII
+    consoleSelect(&topScreen);
+    printf("\x1b[41;37m"); // Fondo rojo, texto blanco
+    printf("\x1b[0;0H");
+    printf("+--------------------------------------------------+\n");
+    printf("|                Bandolero 3DS                     |\n");
+    printf("+--------------------------------------------------+\n");
+    printf("|                  Cargando...                     |\n");
+    printf("+--------------------------------------------------+\n");
+    printf("\x1b[0m");
+    gfxFlushBuffers();
+    gfxSwapBuffers();
+    svcSleepThread(2000000000LL); // 2 segundos
+
     consoleSelect(&bottomScreen);
     //Software keyboard thanks to fincs
     print_instructions();
@@ -47,13 +63,24 @@ int main(int argc, char **argv)
 
         if (kDown & KEY_START)
             break;
-        if (kHeld & KEY_SELECT) {
-            print_about();
-        } else {
-            // Limpiar la zona de info cuando se suelta SELECT
-            consoleSelect(&bottomScreen);
-            printf("\x1b[18;0H");
-            printf("                                               ");
+
+        // Cambiar pestaña con SELECT
+        if (kDown & KEY_SELECT) {
+            show_about = !show_about;
+            if (show_about) {
+                print_about();
+            } else {
+                update_screen(file, curr_line);
+            }
+        }
+
+        // Si está activa la pestaña de Acerca de, ignorar otras entradas
+        if (show_about) {
+            // Permitir salir con START o volver con SELECT
+            gfxFlushBuffers();
+            gfxSwapBuffers();
+            gspWaitForVBlank();
+            continue;
         }
 
 		static SwkbdState swkbd;

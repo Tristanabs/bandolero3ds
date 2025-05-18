@@ -40,7 +40,7 @@ void print_directory_status(std::string filename);
 void print_instructions();
 void print_version(const char* version);
 
-// Muestra la sección Acerca De con información de la app
+// Muestra la sección Acerca De con información de la app en la pantalla superior
 void print_about();
 
 //Clears everything off the top screen
