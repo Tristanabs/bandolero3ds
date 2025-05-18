@@ -1,7 +1,7 @@
 <div align="center">
 <h1 align="center">Bandolero 3DS 🅱️ <a> </h1>
 </div>
-<img src="https://i.imgur.com/qiutUm0.png">
+<img src="https://i.imgur.com/ySyTk8i.png">
   
 # ¿Qué es Bandolero 3ds?
 Bandolero 3ds es una aplicacion para 3ds basada en Notepad 3ds que por el momento solo permite visualizar archivos de texto.
