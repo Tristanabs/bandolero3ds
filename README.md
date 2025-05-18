@@ -10,7 +10,7 @@ Tendra mejoras con respecto a Notepad 3ds proximamente.
 Es fácil, simplemente instala el .cia o escanea el siguiente Código QR
 # Instalación por QR
 <div align="center">
-<img src="https://i.imgur.com/JOyh9WA.png">
+<img src="https://i.imgur.com/f4oNE3O.png">
 <div align="left">
 
 # Créditos
