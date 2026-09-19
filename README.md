@@ -35,5 +35,5 @@ Basado en el trabajo original de [Notepad 3DS](https://github.com/RMcTn/Notepad3
 Puedes pedir soporte en mi servidor Homebrew Central
 https://dc.gg/hbcentral
 
-PROYECTO CERTIFICADO POR FLAGWAVE OPEN CODE.
+### PROYECTO CERTIFICADO POR FLAGWAVE OPEN CODE.
 [![FLG-OC](https://i.imgur.com/8OhDyso.png)](https://www.flagwave.es/open-code)
