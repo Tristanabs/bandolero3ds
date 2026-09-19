@@ -35,4 +35,4 @@ Basado en el trabajo original de [Notepad 3DS](https://github.com/RMcTn/Notepad3
 Puedes pedir soporte en mi servidor Homebrew Central
 https://dc.gg/hbcentral
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/P5P41D6MSN)
+[![FLG-OC](https://i.imgur.com/8OhDyso.png)](https://www.flagwave.es/open-code)
