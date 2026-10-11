@@ -123,8 +123,8 @@ sdmc:/3ds/bandolero/
 ## Documentación adicional
 
 - [Registro de cambios](./CHANGELOG.md)
-- [Generador `.ban3 (Offline) ](./EXTENSION-GENERATOR.md)
-- [Generador web](http://tristanabs.github.io/ban3)
+- [Generador .ban3 (Offline) ](./EXTENSION-GENERATOR.md)
+- [Generador .ban 3 (Online](https://bandolero.netlify.app/)
 
 ## Créditos
 
