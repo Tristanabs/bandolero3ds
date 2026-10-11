@@ -1,6 +1,7 @@
 # Generador de extensiones `.ban3`
 
 El archivo [extension-generator.html](./extension-generator.html) es una herramienta web estática para crear manifiestos de extensiones y temas para Bandolero 3DS.
+### [Generador online](https://bandolero.netlify.app/)
 
 ## Qué genera
 
