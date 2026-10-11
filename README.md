@@ -1,7 +1,21 @@
 # Bandolero 3DS
 
 Editor de texto para Nintendo 3DS, desarrollado por Tristanabs. Bandolero 3DS permite crear, abrir, editar, buscar y guardar archivos de texto directamente en la tarjeta SD.
+<div align="center">
+  <img src="https://github.com/Tristanabs/bandolero3ds/blob/main/banner-new.png?raw=true" alt="Ban" width="300" />
+</div>
+<div align="center">
+  <img src="https://github.com/Tristanabs/bandolero3ds/blob/main/icon.png?raw=true" alt="Banicon"  />
+</div>
 
+## Descarga
+<div align="center">
+  <img src="https://api.qrcode-monkey.com/tmp/cd7cf5fb95e6d6e7e4a72ec0c5973810.svg?1791740324132"  width="300" alt="Banqrdw"  />
+</div>
+
+[Descargar CIA](https://github.com/Tristanabs/bandolero3ds/releases/download/2.0/Bandolero3DS-2.0.cia)
+
+[Ver en Universal-DB](https://db.universal-team.net/3ds/bandolero-3ds)
 ## Versión actual
 
 - **Versión:** 2.0 (Citro2D)
