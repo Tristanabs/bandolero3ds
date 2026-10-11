@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bandolero 3DS - Generador .ban3</title>
+  <style>
+    :root { color-scheme: dark; --red:#be192d; --panel:#192137; --cyan:#44d2e0; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:16px system-ui,sans-serif; background:#0e1322; color:#f4f7ff; }
+    header { background:var(--red); padding:22px clamp(20px,6vw,80px); }
+    main { max-width:900px; margin:28px auto; padding:0 20px; }
+    form { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
+    label { display:flex; flex-direction:column; gap:6px; }
+    input, textarea, button { border:1px solid #46516b; border-radius:5px; padding:10px; font:inherit; }
+    input, textarea { background:var(--panel); color:inherit; }
+    textarea { min-height:110px; grid-column:1/-1; }
+    .colors { display:flex; flex-wrap:wrap; gap:18px; grid-column:1/-1; }
+    .colors input { padding:2px; width:70px; height:42px; }
+    button { background:var(--cyan); color:#071018; border:0; cursor:pointer; font-weight:700; }
+    pre { background:#080c16; padding:16px; overflow:auto; border-radius:5px; }
+    .hint { color:#aab4ca; }
+  </style>
+</head>
+<body>
+  <header><strong>Bandolero 3DS</strong> · Generador de extensiones .ban3</header>
+  <main>
+    <p class="hint">Genera un manifiesto de datos seguro. La aplicación lo lee desde
+      <code>sdmc:/3ds/bandolero/extensions/</code>; no se permite ni se ejecuta código.</p>
+    <form id="generator">
+      <label>ID<input id="id" required pattern="[A-Za-z0-9._\-]+" value="mi-extension"></label>
+      <label>Nombre visible<input id="name" required value="Mi extensión"></label>
+      <label>Extensión de archivo<input id="extension" placeholder=".md" value=".ban"></label>
+      <label>Tema<input id="theme" value="Personalizado"></label>
+      <div class="colors">
+        <label>Fondo<input id="background" type="color" value="#0e1322"></label>
+        <label>Panel<input id="panel" type="color" value="#192137"></label>
+        <label>Rojo<input id="accent" type="color" value="#be192d"></label>
+        <label>Texto<input id="text" type="color" value="#f4f7ff"></label>
+        <label>Cian<input id="cyan" type="color" value="#44d2e0"></label>
+      </div>
+      <textarea id="description" placeholder="Descripción opcional"></textarea>
+      <button type="submit">Descargar extensión .ban3</button>
+    </form>
+    <h2>Vista previa</h2>
+    <pre id="preview"></pre>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const fields = ['id','name','extension','theme','background','panel','accent','text','cyan','description'];
+    function manifest() {
+      return fields.map(key => `${key}=${$(key).value.replace(/[\r\n]/g, ' ')}`).join('\n') + '\n';
+    }
+    function update() { $('preview').textContent = manifest(); }
+    fields.forEach(key => $(key).addEventListener('input', update));
+    $('generator').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!$('generator').reportValidity()) return;
+      const blob = new Blob([manifest()], {type:'text/plain;charset=utf-8'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${$('id').value}.ban3`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+    update();
+  </script>
+</body>
+</html>

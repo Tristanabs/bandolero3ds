@@ -1,4 +1,3 @@
-file.o: \
- C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/file.cpp \
- C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/file.h
-C:/Users/PC/Desktop/bandolero3ds-main/bandolero3ds-main/source/file.h:
+file.o: C:/bandolero-build/source/file.cpp \
+ C:/bandolero-build/source/file.h
+C:/bandolero-build/source/file.h:

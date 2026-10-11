@@ -1,11 +1,12 @@
 #pragma once
 #include <string>
 #include "file.h"
-//Attempts to write contents of file to filename.
-//Returns false if failed
-bool write_to_file(std::string& filename, File& file);
+#include "text_utils.h"
 
-//Attempts to open filename
-//Returns a new File
-//Will overwrite current File on failure OR success
-File open_file(std::string& filename);
+// Writes the UTF-8 byte sequence stored in file to filename.
+// Returns false when the file cannot be opened or flushed successfully.
+bool write_to_file(const std::string& filename, const File& file);
+
+// Opens filename as a UTF-8-compatible byte stream.
+// A failed read returns a File with read_success set to false.
+File open_file(const std::string& filename);

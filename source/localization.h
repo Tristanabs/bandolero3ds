@@ -1,0 +1,66 @@
+#pragma once
+
+enum AppLanguage {
+    APP_LANGUAGE_SPANISH = 0,
+    APP_LANGUAGE_ENGLISH,
+    APP_LANGUAGE_PORTUGUESE,
+    APP_LANGUAGE_FRENCH,
+    APP_LANGUAGE_GERMAN,
+    APP_LANGUAGE_JAPANESE
+};
+
+enum TextId {
+    TEXT_VERSION,
+    TEXT_APP_TITLE,
+    TEXT_APP_SUBTITLE,
+    TEXT_MENU,
+    TEXT_EDIT,
+    TEXT_NEW_FILE,
+    TEXT_SAVE_FILE,
+    TEXT_OPEN_FILE,
+    TEXT_SEARCH,
+    TEXT_JUMP,
+    TEXT_MOVE,
+    TEXT_EXIT,
+    TEXT_ABOUT,
+    TEXT_ACTIONS,
+    TEXT_EMPTY_LINE,
+    TEXT_READY,
+    TEXT_NO_FILE,
+    TEXT_ABOUT_TITLE,
+    TEXT_DEVELOPER,
+    TEXT_GITHUB,
+    TEXT_COPYRIGHT,
+    TEXT_LANGUAGE,
+    TEXT_LANGUAGE_CHANGE,
+    TEXT_LANGUAGE_PROMPT,
+    TEXT_LANGUAGE_HELP,
+    TEXT_LOADING,
+    TEXT_LOADING_SUBTITLE,
+    TEXT_LOADING_VERSION,
+    TEXT_FIRST_RUN_TITLE,
+    TEXT_FIRST_RUN_LINE_1,
+    TEXT_FIRST_RUN_LINE_2,
+    TEXT_FIRST_RUN_LINE_3,
+    TEXT_FIRST_RUN_CONTINUE,
+    TEXT_EDIT_HINT,
+    TEXT_NEW_CONFIRM,
+    TEXT_SEARCH_HINT,
+    TEXT_FILENAME_HINT,
+    TEXT_NEW_CREATED,
+    TEXT_NEW_CANCELLED,
+    TEXT_SEARCH_NOT_FOUND,
+    TEXT_SEARCH_FOUND,
+    TEXT_SAVE_OK,
+    TEXT_SAVE_FAILED,
+    TEXT_OPEN_OK,
+    TEXT_OPEN_FAILED,
+    TEXT_CURRENT_LINE,
+    TEXT_CURRENT_FILE
+};
+
+void localization_init(AppLanguage configured_language);
+const char* tr(TextId id);
+AppLanguage localization_language();
+void localization_set_language(AppLanguage language);
+const char* language_name(AppLanguage language);

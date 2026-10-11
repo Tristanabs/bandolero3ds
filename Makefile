@@ -32,10 +32,11 @@ BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
-#ROMFS		:=	romfs
-APP_TITLE	:= Bandolero 3Ds
-APP_DESCRIPTION	:= Editor de texto para 3Ds
+ROMFS		:=	romfs
+APP_TITLE	:= Bandolero 3DS
+APP_DESCRIPTION	:= Un editor de texto para 3DS - Version 2.0
 APP_AUTHOR 	:= Tristanabs
+PROFILE		?= citro2d
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -46,14 +47,18 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+CFLAGS	+=	$(INCLUDE) -D__3DS__
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
+ifeq ($(PROFILE),terminal)
 LIBS	:= -lctru -lm
+else
+LIBS	:= -lcitro2d -lcitro3d -lctru -lm
+endif
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -79,6 +84,7 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+CPPFILES	:=	$(filter-out display_citro2d.cpp display_terminal.cpp,$(CPPFILES)) display_$(PROFILE).cpp
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PICAFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.v.pica)))
 SHLISTFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
@@ -136,7 +142,7 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C "$(BUILD)" -f "$(TOPDIR)/Makefile"
 
 #---------------------------------------------------------------------------------
 clean:

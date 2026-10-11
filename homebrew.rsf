@@ -1,7 +1,7 @@
 BasicInfo:
-  Title                   : "Bandolero 3Ds"
+  Title                   : "Bandolero 3DS"
   CompanyCode             : "00"
-  ProductCode             : "CTR-P-PWDR"
+  ProductCode             : "CTR-P-BNDR"
   ContentType             : Application
   Logo                    : Homebrew # Nintendo / Licensed / Distributed / iQue / iQueForSystem
 
@@ -34,7 +34,7 @@ AccessControlInfo:
 
 SystemControlInfo:
   SaveDataSize: 128KB
-  RemasterVersion: 0
+  RemasterVersion: 2
   StackSize: 0x40000
   
 # DO NOT EDIT BELOW HERE OR PROGRAMS WILL NOT LAUNCH (most likely)

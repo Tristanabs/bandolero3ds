@@ -12,19 +12,19 @@ struct File {
 
     //Called when an empty line is selected 
     //vector<char> will be filled with a c-style string
-    void add_line(std::vector<char>& new_text);
+    void add_line(const std::vector<char>& new_text);
 
     //Called when an existing line is selected
     //line is current selected line. Used to advance list iterator
-    void edit_line(std::vector<char>& new_text, unsigned int line);
+    void edit_line(const std::vector<char>& new_text, unsigned int line);
 
     int find(const char* search_term);
 
-    int size() {return lines.size();}
+    int size() const {return lines.size();}
 
     std::list<std::vector<char>> lines;
     //Used to check if file open was successful
     bool read_success = false;
 };
 
-std::vector<char> char_arr_to_vector(char* arr);
+std::vector<char> char_arr_to_vector(const char* arr);

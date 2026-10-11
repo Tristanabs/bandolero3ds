@@ -6,50 +6,84 @@
 #include "file.h"
 #include "display.h"
 #include "file_io.h"
+#include "localization.h"
+#include "extension_manager.h"
+#include "config.h"
 
 #define BUFFER_SIZE 1025    //Notepad's line limit + \0
 #define MAX_BOTTOM_SIZE 28
 
-#define VERSION "Bandolero 3Ds version 1.1"
-
-
-PrintConsole topScreen, bottomScreen;
 int scroll = 0;
 bool fast_scroll = false;
 bool show_about = false; // Nueva variable para controlar la pestaña
 
-void move_down(File file);
-void move_up(File file);
+void move_down(const File& file);
+void move_up(const File& file);
 
 unsigned int curr_line = 0;
 
 int main(int argc, char **argv)
 {
+    if (R_FAILED(cfguInit())) {
+        return 1;
+    }
 	gfxInitDefault();
-	consoleInit(GFX_TOP, &topScreen);
-    consoleInit(GFX_BOTTOM, &bottomScreen);
+    romfsInit();
+    if (!config_init()) {
+        romfsExit();
+        gfxExit();
+        cfguExit();
+        return 1;
+    }
+    localization_init(config_language());
+    if (!display_init()) {
+        gfxExit();
+        cfguExit();
+        return 1;
+    }
 
-    // Pantalla de carga SOLO ASCII
-    consoleSelect(&topScreen);
-    printf("\x1b[41;37m"); // Fondo rojo, texto blanco
-    printf("\x1b[0;0H");
-    printf("+--------------------------------------------------+\n");
-    printf("|                Bandolero 3DS                     |\n");
-    printf("+--------------------------------------------------+\n");
-    printf("|                  Cargando...                     |\n");
-    printf("+--------------------------------------------------+\n");
-    printf("\x1b[0m");
-    gfxFlushBuffers();
-    gfxSwapBuffers();
-    svcSleepThread(2000000000LL); // 2 segundos
+    print_loading_screen();
 
-    consoleSelect(&bottomScreen);
-    //Software keyboard thanks to fincs
-    print_instructions();
+    if (config_is_first_run()) {
+        AppLanguage selected_language = APP_LANGUAGE_SPANISH;
+        bool language_selected = false;
+        while (aptMainLoop() && !language_selected) {
+            print_language_setup(selected_language);
+            hidScanInput();
+            const u32 keys = hidKeysDown();
+            if (keys & KEY_R)
+                selected_language = static_cast<AppLanguage>((selected_language + 1) % 6);
+            if (keys & KEY_L)
+                selected_language = static_cast<AppLanguage>((selected_language + 5) % 6);
+            if (keys & KEY_A)
+                language_selected = true;
+            gspWaitForVBlank();
+        }
+        config_set_language(selected_language);
+        config_commit_language();
+        localization_set_language(selected_language);
+        print_first_run_info();
+        while (aptMainLoop()) {
+            hidScanInput();
+            if (hidKeysDown() & KEY_A)
+                break;
+            gspWaitForVBlank();
+        }
+    }
 
-    print_version(VERSION);
-    
     File file;      //Use as default file
+    const std::vector<ExtensionInfo> extensions = load_extension_catalog();
+    std::vector<std::string> extension_names;
+    for (const ExtensionInfo& extension : extensions) {
+        if (!extension.name.empty())
+            extension_names.push_back(extension.name);
+    }
+    display_set_extensions(extension_names);
+    if (!extensions.empty()) {
+        const ExtensionInfo& theme = extensions.front();
+        display_apply_theme(theme.background, theme.panel, theme.accent,
+                            theme.text, theme.cyan);
+    }
 
     update_screen(file, curr_line);
 
@@ -76,9 +110,17 @@ int main(int argc, char **argv)
 
         // Si está activa la pestaña de Acerca de, ignorar otras entradas
         if (show_about) {
-            // Permitir salir con START o volver con SELECT
-            gfxFlushBuffers();
-            gfxSwapBuffers();
+            AppLanguage language = localization_language();
+            if (kDown & KEY_R)
+                language = static_cast<AppLanguage>((language + 1) % 6);
+            if (kDown & KEY_L)
+                language = static_cast<AppLanguage>((language + 5) % 6);
+            if ((kDown & (KEY_R | KEY_L)) != 0) {
+                localization_set_language(language);
+                config_set_language(language);
+                config_commit_language();
+                print_about();
+            }
             gspWaitForVBlank();
             continue;
         }
@@ -94,7 +136,7 @@ int main(int argc, char **argv)
 
         if (kDown & KEY_A) {
             //Select current line for editing
-            swkbdSetHintText(&swkbd, "Introduce el texto aqui.");
+            swkbdSetHintText(&swkbd, tr(TEXT_EDIT_HINT));
             //Iterator to find current selected line
             auto line = file.lines.begin();
             if (curr_line < file.lines.size())
@@ -120,7 +162,7 @@ int main(int argc, char **argv)
             //Clear buffer
             memset(mybuf, '\0', BUFFER_SIZE);
             //Confirm creating a new file
-            swkbdSetHintText(&swkbd, "Seguro que quieres abrir un archivo en blanco? y/n"); 
+            swkbdSetHintText(&swkbd, tr(TEXT_NEW_CONFIRM)); 
             button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
             if (mybuf[0] == 'y') {
                 File blankFile;
@@ -128,9 +170,9 @@ int main(int argc, char **argv)
                 curr_line = 0;
                 scroll = 0;
                 update_screen(file, curr_line);
-                print_save_status("Archivo nuevo creado");
+                print_save_status(tr(TEXT_NEW_CREATED));
             } else
-                print_save_status("No se creo ningun archivo nuevo");
+                print_save_status(tr(TEXT_NEW_CANCELLED));
         }
 
         if (kDown & KEY_R) {
@@ -139,13 +181,17 @@ int main(int argc, char **argv)
             //Clear buffer
             memset(mybuf, '\0', BUFFER_SIZE);
             //Get term to search for
-            swkbdSetHintText(&swkbd, "Introduce el termino de busqueda"); 
+            swkbdSetHintText(&swkbd, tr(TEXT_SEARCH_HINT)); 
             button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
             int line = file.find(mybuf);
-            if (line < 0)
-                printf("No se encontro: %s", mybuf);
-            else {
-                printf("Encontrado %s en linea %d", mybuf, line);
+            if (line < 0) {
+                char status[BUFFER_SIZE];
+                snprintf(status, sizeof(status), tr(TEXT_SEARCH_NOT_FOUND), mybuf);
+                print_save_status(status);
+            } else {
+                char status[BUFFER_SIZE];
+                snprintf(status, sizeof(status), tr(TEXT_SEARCH_FOUND), mybuf, line);
+                print_save_status(status);
                 curr_line = line;
                 if (curr_line > MAX_BOTTOM_SIZE) {
                     scroll = curr_line - MAX_BOTTOM_SIZE;
@@ -169,20 +215,25 @@ int main(int argc, char **argv)
 
             //Get file name
            
-            swkbdSetHintText(&swkbd, "Introduzca aquí el nombre del archivo."); 
+            swkbdSetHintText(&swkbd, tr(TEXT_FILENAME_HINT)); 
             button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
             std::string filename = "";
             for (int i = 0; mybuf[i] != '\0'; i++)
                 filename.push_back(mybuf[i]);
+            filename = normalize_text_filename(filename);
 
             //Write out characters to file
             bool success = write_to_file(filename, file);
             
             if (success) {
-                print_save_status("Archivo guardado en " + filename);
+                char status[BUFFER_SIZE];
+                snprintf(status, sizeof(status), tr(TEXT_SAVE_OK), filename.c_str());
+                print_save_status(status);
                 print_directory_status(filename);
             } else {
-                print_save_status("No se pudo guardar " + filename);
+                char status[BUFFER_SIZE];
+                snprintf(status, sizeof(status), tr(TEXT_SAVE_FAILED), filename.c_str());
+                print_save_status(status);
             }
 
         }
@@ -197,7 +248,7 @@ int main(int argc, char **argv)
 
             //Get file name
            
-            swkbdSetHintText(&swkbd, "Introduzca aquí el nombre del archivo."); 
+            swkbdSetHintText(&swkbd, tr(TEXT_FILENAME_HINT)); 
             button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
             std::string filename = "";
             for (int i = 0; mybuf[i] != '\0'; i++)
@@ -209,19 +260,19 @@ int main(int argc, char **argv)
             if (file.read_success) {
                 update_screen(file, curr_line);
                 clear_save_status();
-                 std::cout << "Archivo abierto correctamente: " << filename << std::endl;
+                 char status[BUFFER_SIZE];
+                 snprintf(status, sizeof(status), tr(TEXT_OPEN_OK), filename.c_str());
+                 print_save_status(status);
                  clear_directory_status();
-                 std::cout << "Archivo actual: " << filename;
-                consoleSelect(&bottomScreen);
-                printf("Archivo actual: %s\n", filename);
+                 print_directory_status(filename);
                 //print_directory_status(filename);
             } else {
                 file = oldfile;
                 update_screen(file, curr_line);
                 clear_save_status();
-                 std::cout << "No se pudo abrir: " << filename << std::endl;
-                consoleSelect(&bottomScreen);
-                printf("No se pudo abrir: %s\n", filename);
+                 char status[BUFFER_SIZE];
+                 snprintf(status, sizeof(status), tr(TEXT_OPEN_FAILED), filename.c_str());
+                 print_save_status(status);
                 //print_save_status("Failed to open " + filename);
             }
         }
@@ -266,18 +317,19 @@ int main(int argc, char **argv)
 				printf("swkbd event: %d\n", swkbdGetResult(&swkbd));
 		}
 
-		// Flush and swap framebuffers
-		gfxFlushBuffers();
-		gfxSwapBuffers();
+        update_screen(file, curr_line);
 
 		gspWaitForVBlank();
 	}
 
+    display_exit();
+    romfsExit();
+    cfguExit();
 	gfxExit();
 	return 0;
 }
 
-void move_down(File file) {
+void move_down(const File& file) {
     //Move a line down (towards bottom of screen)
     if (curr_line < file.lines.size() - 1) {
         if (fast_scroll) {
@@ -298,7 +350,7 @@ void move_down(File file) {
 
 }
 
-void move_up(File file) {
+void move_up(const File& file) {
     //Move a line up (towards top of screen)
 
     if (curr_line != 0) {
