@@ -139,7 +139,8 @@ Agradecimientos a [Kelonio 3DS](https://www.youtube.com/@Kelonio3DS).
 Para soporte, utiliza el servidor Homebrew Central:
 
 <https://dc.gg/hbcentral>
-
+## Ayuda al creador
+Puedes apoyarme con diversos métodos en https://linktr.ee/tristanabs
 ## Flagwave Open Code
 
 Bandolero 3DS está adherido a Flagwave Open Code.
