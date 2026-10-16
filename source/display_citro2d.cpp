@@ -1,6 +1,7 @@
 #include "display.h"
 #include "localization.h"
 #include "text_utils.h"
+#include "config.h"
 
 #include <3ds.h>
 #include <citro2d.h>
@@ -12,12 +13,16 @@
 #include <algorithm>
 
 namespace {
+bool markdown_preview = false;
+}
+
+namespace {
 constexpr float TOP_WIDTH = 400.0f;
 constexpr float SCREEN_HEIGHT = 240.0f;
 constexpr float BOTTOM_WIDTH = 320.0f;
 constexpr float READABILITY_SCALE = 1.45f;
-constexpr char APP_VERSION[] = "VERSION 2.0 (CITRO2D)";
-constexpr char APP_BUILD[] = "BUILD 2026.10.11";
+constexpr char APP_VERSION[] = "VERSION 2.3.1 (CITRO2D)";
+constexpr char APP_BUILD[] = "BUILD 2026.10.16";
 u32 background_color = C2D_Color32(14, 19, 34, 255);
 u32 panel_color = C2D_Color32(25, 33, 55, 255);
 u32 panel_alt_color = C2D_Color32(31, 42, 70, 255);
@@ -112,6 +117,55 @@ void draw_header(float width, const char* section) {
     draw_text(section, width - 126, 11, 0.42f, text_color);
 }
 
+void draw_action_button(float x, float y, float width, const char* label,
+                        u32 color) {
+    C2D_DrawRectSolid(x, y, 0.5f, width, 19, panel_alt_color);
+    C2D_DrawRectSolid(x, y, 0.5f, 3, 19, color);
+    draw_text(label, x + 8, y + 5, 0.29f, text_color);
+}
+
+void draw_markdown_line(const std::string& source, float x, float y,
+                        float scale, u32 color) {
+    std::string value = source;
+    bool heading = false;
+    if (value.size() >= 2 && value[0] == '#' && value[1] == ' ') {
+        value.erase(0, 2);
+        heading = true;
+    }
+    const float line_scale = heading ? scale + 0.03f : scale;
+    bool bold = false;
+    float cursor = x;
+    std::string segment;
+    for (size_t index = 0; index <= value.size(); ++index) {
+        const bool marker = index + 1 < value.size() &&
+                            value[index] == '*' && value[index + 1] == '*';
+        if (marker || index == value.size()) {
+            if (!segment.empty()) {
+                draw_text(segment, cursor, y, line_scale,
+                          heading ? selected_color : color);
+                C2D_Text measured;
+                text(measured, segment.c_str());
+                float width = 0.0f;
+                float height = 0.0f;
+                C2D_TextGetDimensions(&measured, line_scale * READABILITY_SCALE,
+                                      line_scale * READABILITY_SCALE, &width, &height);
+                if (bold) {
+                    draw_text(segment, cursor + 0.7f, y, line_scale,
+                              heading ? selected_color : color);
+                }
+                cursor += width;
+                segment.clear();
+            }
+            if (marker) {
+                bold = !bold;
+                ++index;
+            }
+        } else {
+            segment += value[index];
+        }
+    }
+}
+
 void draw_editor(const File& file, unsigned int current_line) {
     C2D_TargetClear(top_target, background_color);
     C2D_SceneBegin(top_target);
@@ -119,16 +173,20 @@ void draw_editor(const File& file, unsigned int current_line) {
     C2D_DrawRectSolid(0, 38, 0.5f, TOP_WIDTH, 3, CYAN);
 
     std::list<std::vector<char>>::const_iterator line = file.lines.begin();
+    const unsigned int first_line = static_cast<unsigned int>(scroll);
+    if (first_line < file.lines.size())
+        std::advance(line, first_line);
     constexpr float editor_line_height = 9.35f;
-    constexpr unsigned int visible_lines = 19;
+    constexpr unsigned int visible_lines = VISIBLE_EDITOR_LINES;
     for (unsigned int index = 0; index < visible_lines; ++index) {
         const float y = 43.0f + index * editor_line_height;
-        const bool selected = index == current_line;
+        const unsigned int line_number = first_line + index;
+        const bool selected = line_number == current_line;
         if (selected)
             C2D_DrawRectSolid(5, y - 1, 0.45f, 390, 10, panel_alt_color);
 
         char number[8];
-        std::snprintf(number, sizeof(number), "%02u", index + 1);
+        std::snprintf(number, sizeof(number), "%02u", line_number + 1);
         draw_text(number, 9, y, 0.25f, selected ? selected_color : muted_color);
 
         if (line != file.lines.end()) {
@@ -137,8 +195,16 @@ void draw_editor(const File& file, unsigned int current_line) {
                 value.erase(value.size() - 1);
             if (value.empty())
                 value = tr(TEXT_EMPTY_LINE);
-            draw_text(utf8_display_prefix(value, 53), 43, y, 0.28f,
-                      selected ? text_color : muted_color);
+            const bool glyphs_valid = utf8_is_valid(value);
+            const std::string display_value = utf8_display_prefix(value, 53);
+            if (markdown_preview)
+                draw_markdown_line(display_value, 43, y, 0.28f,
+                                   !glyphs_valid ? accent_color :
+                                   selected ? text_color : muted_color);
+            else
+                draw_text(display_value, 43, y, 0.28f,
+                          !glyphs_valid ? accent_color :
+                          selected ? text_color : muted_color);
             ++line;
         }
     }
@@ -151,6 +217,10 @@ void draw_editor(const File& file, unsigned int current_line) {
                   file.size());
     std::strncat(footer, line_suffix, sizeof(footer) - std::strlen(footer) - 1);
     draw_text(footer, 12, 229, 0.28f, cyan_color);
+    if (first_line + visible_lines < file.lines.size())
+        draw_text("...", 378, 229, 0.28f, selected_color);
+    draw_text(markdown_preview ? "MD PREVIEW" : "UTF-8 GLYPHS OK",
+              260, 229, 0.22f, markdown_preview ? cyan_color : muted_color);
 }
 
 void draw_bottom() {
@@ -158,23 +228,28 @@ void draw_bottom() {
     C2D_SceneBegin(bottom_target);
     draw_header(BOTTOM_WIDTH, tr(TEXT_MENU));
     C2D_DrawRectSolid(8, 48, 0.5f, 304, 142, panel_color);
-    C2D_DrawRectSolid(8, 48, 0.5f, 5, 142, accent_color);
-    draw_centered(tr(TEXT_ACTIONS), 160, 59, 0.43f, cyan_color);
-    draw_text(tr(TEXT_EDIT), 20, 79, 0.37f, text_color);
-    draw_text(tr(TEXT_NEW_FILE), 164, 79, 0.37f, text_color);
-    draw_text(tr(TEXT_SAVE_FILE), 20, 99, 0.37f, text_color);
-    draw_text(tr(TEXT_OPEN_FILE), 164, 99, 0.37f, text_color);
-    draw_text(tr(TEXT_SEARCH), 20, 119, 0.37f, text_color);
-    draw_text(tr(TEXT_JUMP), 164, 119, 0.37f, text_color);
-    draw_text(tr(TEXT_MOVE), 20, 141, 0.35f, muted_color);
-    draw_text(tr(TEXT_EXIT), 20, 161, 0.35f, muted_color);
-    draw_text(tr(TEXT_ABOUT), 164, 161, 0.35f, muted_color);
-    C2D_DrawRectSolid(8, 196, 0.5f, 304, 30, panel_alt_color);
-    draw_text(save_status.empty() ? tr(TEXT_READY) : save_status, 18, 204, 0.33f,
+    draw_centered(tr(TEXT_ACTIONS), 160, 54, 0.36f, cyan_color);
+    draw_action_button(14, 72, 143, tr(TEXT_EDIT), accent_color);
+    draw_action_button(163, 72, 143, tr(TEXT_NEW_FILE), cyan_color);
+    draw_action_button(14, 95, 143, tr(TEXT_SAVE_FILE), selected_color);
+    draw_action_button(163, 95, 143, tr(TEXT_OPEN_FILE), cyan_color);
+    draw_action_button(14, 118, 143, tr(TEXT_SEARCH), accent_color);
+    draw_action_button(163, 118, 143, tr(TEXT_JUMP), selected_color);
+    draw_action_button(14, 145, 143, tr(TEXT_MOVE), muted_color);
+    draw_action_button(163, 145, 143, tr(TEXT_ABOUT), accent_color);
+    C2D_DrawRectSolid(8, 196, 0.5f, 304, 22, panel_alt_color);
+    std::string status = save_status.empty() ? tr(TEXT_READY) : save_status;
+    if (!current_filename.empty()) {
+        status += " | ";
+        status += current_filename;
+    }
+    draw_text(utf8_display_prefix(status, 48), 15, 203, 0.27f,
               save_status.empty() ? cyan_color : selected_color);
-    draw_text(current_filename.empty() ? tr(TEXT_NO_FILE) : current_filename,
-              18, 219, 0.30f, muted_color);
 }
+}
+
+void display_set_markdown_preview(bool enabled) {
+    markdown_preview = enabled;
 }
 
 bool display_init() {
@@ -271,40 +346,145 @@ void print_about() {
     draw_header(TOP_WIDTH, tr(TEXT_ABOUT_TITLE));
     C2D_DrawRectSolid(0, 38, 0.5f, TOP_WIDTH, 3, CYAN);
     C2D_DrawRectSolid(12, 52, 0.5f, 376, 176, PANEL);
+    C2D_DrawRectSolid(22, 63, 0.5f, 64, 64, PANEL_ALT);
     if (program_icon.tex)
-        C2D_DrawImageAt(program_icon, 22, 76, 0.5f, nullptr, 0.88f, 0.88f);
-    draw_text(tr(TEXT_APP_TITLE), 92, 60, 0.45f, TEXT);
-    draw_text(tr(TEXT_APP_SUBTITLE), 92, 84, 0.34f, CYAN);
-    draw_text(APP_VERSION, 92, 108, 0.35f, SELECTED);
-    draw_text(APP_BUILD, 92, 130, 0.33f, SELECTED);
-    draw_text(tr(TEXT_DEVELOPER), 92, 151, 0.34f, MUTED);
-    draw_text(tr(TEXT_COPYRIGHT), 92, 173, 0.34f, MUTED);
-    draw_text(tr(TEXT_GITHUB), 92, 195, 0.30f, TEXT);
-    draw_text(tr(TEXT_LANGUAGE), 92, 217, 0.32f, CYAN);
-    draw_text(language_name(localization_language()), 160, 217, 0.32f, SELECTED);
-    draw_text(tr(TEXT_LANGUAGE_CHANGE), 224, 217, 0.30f, MUTED);
+        C2D_DrawImageAt(program_icon, 27, 68, 0.5f, nullptr, 0.76f, 0.76f);
+    draw_text(tr(TEXT_APP_TITLE), 101, 61, 0.45f, TEXT);
+    draw_text(tr(TEXT_APP_SUBTITLE), 101, 84, 0.30f, CYAN);
+    draw_text(APP_VERSION, 101, 108, 0.32f, SELECTED);
+    draw_text(APP_BUILD, 101, 127, 0.30f, SELECTED);
+    draw_text(tr(TEXT_DEVELOPER), 101, 147, 0.30f, MUTED);
+    draw_text(tr(TEXT_COPYRIGHT), 101, 166, 0.30f, MUTED);
+    draw_text("Licencia MIT", 101, 185, 0.28f, CYAN);
     if (flagwave_logo.tex)
-        C2D_DrawImageAt(flagwave_logo, 286, 73, 0.5f, nullptr, 0.42f, 0.42f);
+        C2D_DrawImageAt(flagwave_logo, 300, 184, 0.5f, nullptr, 0.34f, 0.34f);
 
     C2D_TargetClear(bottom_target, BACKGROUND);
     C2D_SceneBegin(bottom_target);
-    draw_header(BOTTOM_WIDTH, "GITHUB");
-    C2D_DrawRectSolid(12, 48, 0.5f, 296, 178, PANEL);
+    draw_header(BOTTOM_WIDTH, tr(TEXT_ABOUT_LINKS));
+    C2D_DrawRectSolid(12, 48, 0.5f, 296, 142, PANEL);
     if (github_qr.tex)
-        C2D_DrawImageAt(github_qr, 124, 59, 0.5f, nullptr, 0.60f, 0.60f);
-    std::string extension_summary = "EXT: ";
+        C2D_DrawImageAt(github_qr, 28, 60, 0.5f, nullptr, 0.68f, 0.68f);
+    draw_text(tr(TEXT_ABOUT_PROJECT), 174, 65, 0.38f, CYAN);
+    draw_text(tr(TEXT_ABOUT_SCAN_QR), 174, 88, 0.32f, TEXT);
+    draw_text(tr(TEXT_GITHUB), 174, 107, 0.25f, MUTED);
+    std::string extension_summary = tr(TEXT_ABOUT_EXTENSIONS);
+    extension_summary += ": ";
     for (unsigned int index = 0; index < loaded_extensions.size(); ++index) {
         if (index != 0)
             extension_summary += ", ";
         extension_summary += loaded_extensions[index];
     }
+
     if (loaded_extensions.empty())
-        extension_summary += "NONE";
-    draw_centered(utf8_display_prefix(extension_summary, 36), 160, 139, 0.31f,
-                  SELECTED);
-    draw_centered("ESCANEA EL QR PARA ABRIR", 160, 186, 0.31f, TEXT);
-    draw_centered("EL GITHUB DESDE TU MOVIL", 160, 201, 0.31f, CYAN);
-    draw_centered("ADHERIDO A FLAGWAVE OPEN CODE", 160, 217, 0.25f, SELECTED);
+        extension_summary += "N/A";
+    draw_text(utf8_display_prefix(extension_summary, 29), 18, 171, 0.27f,
+              SELECTED);
+    draw_action_button(14, 190, 150, "X: AVISOS .BAN3",
+                       accent_color);
+    draw_text(config_extension_notifications() ? tr(TEXT_ABOUT_ENABLED) :
+              tr(TEXT_ABOUT_DISABLED), 157, 196, 0.24f,
+              config_extension_notifications() ? CYAN : MUTED);
+    draw_action_button(14, 213, 136, ("SELECT  " +
+                       std::string(tr(TEXT_ABOUT_BACK))).c_str(), muted_color);
+    draw_action_button(163, 213, 143, "R/L: IDIOMA", cyan_color);
+    C3D_FrameEnd(0);
+}
+
+void print_dedication() {
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C2D_TargetClear(top_target, background_color);
+    C2D_SceneBegin(top_target);
+    draw_header(TOP_WIDTH, "DEDICATORIA");
+    C2D_DrawRectSolid(18, 52, 0.5f, 364, 164, panel_color);
+    draw_text("Basado originalmente en Notepad3DS", 32, 68, 0.30f, cyan_color);
+    draw_text("He pensado que podría incluir aquí una pequeña dedicatoria,", 32, 94,
+              0.22f, text_color);
+    draw_text("como los autores ponen en sus libros, así que muchas gracias a", 32, 110,
+              0.22f, text_color);
+    draw_text("todas las personas que hacen la scene hispana, a todos los usuarios", 32,
+              126, 0.22f, text_color);
+    draw_text("que nos apoyan día a día pero sobre todo a mis amigos y compañeros", 32,
+              142, 0.22f, text_color);
+    draw_text("de Homebrew Central y La presa, De corazón, gracias.", 32, 158,
+              0.22f, text_color);
+    draw_text("-Tristanabs", 32, 186, 0.28f, selected_color);
+    C2D_TargetClear(bottom_target, background_color);
+    C2D_SceneBegin(bottom_target);
+    draw_header(BOTTOM_WIDTH, "SECRETO");
+    C2D_DrawRectSolid(20, 58, 0.5f, 280, 116, panel_alt_color);
+    draw_centered("DEDICATORIA DESBLOQUEADA", 160, 78, 0.31f, selected_color);
+    draw_centered("Gracias por apoyar Bandolero 3DS", 160, 110, 0.28f, text_color);
+    draw_centered("A / B / SELECT: VOLVER", 160, 146, 0.28f, cyan_color);
+    C3D_FrameEnd(0);
+}
+
+void print_file_browser(const std::vector<std::string>& files,
+                        unsigned int selected) {
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C2D_TextBufClear(text_buffer);
+    C2D_TargetClear(top_target, BACKGROUND);
+    C2D_SceneBegin(top_target);
+    draw_header(TOP_WIDTH, tr(TEXT_FILE_BROWSER));
+    C2D_DrawRectSolid(12, 48, 0.5f, 376, 178, PANEL);
+    const unsigned int first = selected > 12 ? selected - 12 : 0;
+    for (unsigned int index = first; index < files.size() && index < first + 15;
+         ++index) {
+        const float y = 57.0f + (index - first) * 11.0f;
+        const bool active = index == selected;
+        if (active)
+            C2D_DrawRectSolid(18, y - 1, 0.45f, 364, 11, PANEL_ALT);
+        draw_text(utf8_display_prefix(files[index], 48), 25, y, 0.31f,
+                  active ? SELECTED : TEXT);
+    }
+    if (files.empty())
+        draw_centered(tr(TEXT_NO_FILE), 200, 112, 0.42f, MUTED);
+    draw_text("A ABRIR   B CANCELAR   DPAD MOVER", 22, 216, 0.29f, CYAN);
+    C2D_TargetClear(bottom_target, BACKGROUND);
+    C2D_SceneBegin(bottom_target);
+    draw_header(BOTTOM_WIDTH, "EXPLORADOR");
+    draw_centered("SELECCIONA UN ARCHIVO", 160, 78, 0.42f, TEXT);
+    draw_centered("A para abrir", 160, 112, 0.38f, SELECTED);
+    draw_centered("B para volver", 160, 140, 0.35f, MUTED);
+    C3D_FrameEnd(0);
+}
+
+void print_extension_notice(const std::string& name,
+                            const std::string& description) {
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C2D_TextBufClear(text_buffer);
+    C2D_TargetClear(top_target, BACKGROUND);
+    C2D_SceneBegin(top_target);
+    draw_header(TOP_WIDTH, tr(TEXT_NEW_EXTENSION));
+    draw_centered(tr(TEXT_NEW_EXTENSION), 200, 72, 0.46f, SELECTED);
+    draw_centered(utf8_display_prefix(name, 30), 200, 112, 0.46f, TEXT);
+    draw_centered(utf8_display_prefix(description, 52), 200, 142, 0.30f, CYAN);
+    draw_centered("Pulsa A para continuar", 200, 201, 0.34f, MUTED);
+    C2D_TargetClear(bottom_target, BACKGROUND);
+    C2D_SceneBegin(bottom_target);
+    draw_header(BOTTOM_WIDTH, "EXTENSION");
+    draw_centered("Manifiesto de datos seguro", 160, 86, 0.37f, TEXT);
+    draw_centered("No ejecuta codigo nativo", 160, 119, 0.35f, CYAN);
+    draw_centered("A continuar", 160, 166, 0.35f, SELECTED);
+    C3D_FrameEnd(0);
+}
+
+void print_format_menu(const std::string& current_format) {
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C2D_TextBufClear(text_buffer);
+    C2D_TargetClear(top_target, BACKGROUND);
+    C2D_SceneBegin(top_target);
+    draw_header(TOP_WIDTH, tr(TEXT_FORMAT_MENU));
+    draw_centered(tr(TEXT_FORMAT_PROMPT), 200, 64, 0.46f, TEXT);
+    draw_centered("TXT   MD   INI   C   CPP   H   PY", 200, 105, 0.34f, CYAN);
+    draw_centered("Actual: " + current_format, 200, 139, 0.36f, SELECTED);
+    draw_centered("A OK   B " + std::string(tr(TEXT_FORMAT_CANCEL)), 200, 205, 0.34f, MUTED);
+    C2D_TargetClear(bottom_target, BACKGROUND);
+    C2D_SceneBegin(bottom_target);
+    draw_header(BOTTOM_WIDTH, tr(TEXT_FORMAT_MENU));
+    draw_centered("Texto compatible", 160, 82, 0.40f, TEXT);
+    draw_centered("Sin ejecucion de codigo", 160, 119, 0.32f, CYAN);
+    draw_centered("A aceptar  B cancelar", 160, 165, 0.33f, SELECTED);
     C3D_FrameEnd(0);
 }
 

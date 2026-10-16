@@ -23,6 +23,7 @@ std::string utf8_display_prefix(const std::string& value, unsigned int max_bytes
         result.append(value, offset, length);
         offset += length;
     }
+
     return result;
 }
 
@@ -34,4 +35,35 @@ std::string normalize_text_filename(const std::string& filename) {
     if (dot == std::string::npos || (slash != std::string::npos && dot < slash))
         return filename + ".txt";
     return filename;
+}
+
+bool utf8_is_valid(const std::string& value) {
+    unsigned int offset = 0;
+    while (offset < value.size()) {
+        const unsigned char first = static_cast<unsigned char>(value[offset]);
+        const unsigned int length = utf8_sequence_length(first);
+        if (length == 1 && (first & 0x80))
+            return false;
+        if (offset + length > value.size())
+            return false;
+        for (unsigned int index = 1; index < length; ++index) {
+            if ((static_cast<unsigned char>(value[offset + index]) & 0xc0) != 0x80)
+                return false;
+        }
+        offset += length;
+    }
+    return true;
+}
+
+std::string markdown_display_text(const std::string& value) {
+    std::string result = value;
+    if (result.size() >= 2 && result[0] == '#' && result[1] == ' ')
+        result.erase(0, 2);
+    while (result.find("**") != std::string::npos)
+        result.erase(result.find("**"), 2);
+    while (result.find("__") != std::string::npos)
+        result.erase(result.find("__"), 2);
+    if (result.size() >= 2 && result[0] == '-' && result[1] == ' ')
+        result[0] = '*';
+    return result;
 }

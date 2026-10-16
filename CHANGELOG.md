@@ -1,13 +1,13 @@
 # Registro de cambios
 
-## 2.0 (Citro2D) — 2026-10-11
+## 2.3.1 (Citro2D) — 2026-10-16
 
 Esta versión moderniza la edición anterior y cambia la presentación principal a Citro2D/Citro3D.
 
 ### Interfaz
 
 - Nueva interfaz para las dos pantallas de Nintendo 3DS.
-- Editor adaptado a la resolución de la consola con 19 líneas visibles.
+- Editor adaptado a la resolución de la consola con 15 líneas visibles.
 - Selección de línea, barra de estado y menú de controles renovados.
 - Pantalla de carga y sección “Acerca de” rediseñadas.
 - Inclusión del icono, QR y logo de Flagwave Open Code.
@@ -15,7 +15,8 @@ Esta versión moderniza la edición anterior y cambia la presentación principal
 
 ### Archivos y persistencia
 
-- Guardado y apertura en `sdmc:/3ds/bandolero/files/`.
+- Guardado y apertura en `sdmc:/3ds/bandolero/files/`, incluyendo navegación
+  por subcarpetas.
 - Creación automática de `files/`, `extensions/` y `config.ini`.
 - Persistencia del idioma y del número de arranques.
 - Conservación de extensiones de archivo personalizadas.
@@ -26,6 +27,12 @@ Esta versión moderniza la edición anterior y cambia la presentación principal
 - Cambio de idioma desde “Acerca de” mediante `R/L`.
 - Fuente RomFS con glifos latinos, símbolos, tildes, `Ñ` y japonés.
 - Mejoras en el manejo de texto UTF-8.
+- Comprobación automática de secuencias UTF-8 inválidas antes de dibujar.
+- Renderizado visual de `**negrita**` y encabezados Markdown.
+- Dedicatoria oculta desbloqueable mediante el código Konami.
+- La pantalla de “Acerca de” muestra `R/L: IDIOMA` y `X: AVISOS .BAN3`.
+- El logo de Flagwave Open Code se coloca en la esquina inferior derecha del
+  panel superior.
 
 ### Extensiones y temas
 
@@ -34,17 +41,38 @@ Esta versión moderniza la edición anterior y cambia la presentación principal
 - Lista de extensiones cargadas en “Acerca de”.
 - Nuevo [generador web](./extension-generator.html).
 - Las extensiones no ejecutan código nativo externo.
+- `extensions_enabled=0` en `config.ini` desactiva manualmente la carga de
+  extensiones; no existe un control equivalente dentro de la app.
+- `config.ini` registra actividad con entradas `log=` y purga automáticamente
+  los eventos de más de 30 días, incluyendo aperturas, nuevas extensiones y
+  actualizaciones de versión.
 
 ### CIA y banner
 
 - Metadatos de aplicación actualizados:
   - Nombre: Bandolero 3DS.
-  - Descripción: Un editor de texto para 3DS - Version 2.0.
+  - Descripción: Un editor de texto para 3DS - Version 2.3.1.
   - Editor: Tristanabs.
   - ProductCode: `CTR-P-BNDR`.
   - UniqueId solicitado en el RSF: `000400000FF3FF00`.
-- Banner con icono, imagen y audio del menú HOME.
-- Audio convertido a `CWAV` estéreo de menos de 3 segundos para compatibilidad con HOME.
+- CIA empaquetado pasando explícitamente el SMDH y `banner.bnr` a `makerom`.
+- El SMDH contiene el nombre, descripción, autor e icono de Bandolero 3DS.
+- `banner.bnr` conserva la imagen y el audio originales del menú HOME.
+
+### Próxima versión — base implementada
+
+- Editor reducido a 15 líneas visibles con desplazamiento y aviso visual cuando hay más contenido.
+- Explorador de archivos para abrir documentos de `files/` con cruceta, botones y pantalla táctil.
+- El menú inferior reconoce las zonas táctiles de sus acciones principales.
+- Apertura y guardado compatibles con formatos de texto y código, incluidos
+  `.txt`, `.md`, `.json`, `.xml`, `.html`, `.css`, `.js`, `.c`, `.cpp`, `.py`,
+  `.rs`, `.go` y `.sql`.
+- Previsualización Markdown básica para encabezados, énfasis y listas.
+- Las extensiones siguen siendo manifiestos de datos sin ejecución de código nativo y aceptan descripción.
+- Avisos persistentes de nuevas extensiones, con opción para desactivarlos desde “Acerca de”.
+- Catálogo web con cinco temas `.ban3` descargables y personalizados.
+- Sección “Acerca de” reorganizada en bloques de identidad, enlaces y ajustes, con QR más grande y controles agrupados.
+- Se conservan sin cambios el banner, el icono y el audio del menú HOME.
 
 ## Versión anterior
 

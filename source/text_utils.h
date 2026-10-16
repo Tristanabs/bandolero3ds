@@ -7,3 +7,5 @@ std::string utf8_display_prefix(const std::string& value, unsigned int max_bytes
 
 // Adds .txt only when the user did not provide an extension.
 std::string normalize_text_filename(const std::string& filename);
+bool utf8_is_valid(const std::string& value);
+std::string markdown_display_text(const std::string& value);

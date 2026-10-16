@@ -7,6 +7,7 @@ struct ExtensionInfo {
     std::string id;
     std::string name;
     std::string extension;
+    std::string description;
     std::string theme;
     std::string background;
     std::string panel;

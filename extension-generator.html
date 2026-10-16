@@ -20,13 +20,25 @@
     button { background:var(--cyan); color:#071018; border:0; cursor:pointer; font-weight:700; }
     pre { background:#080c16; padding:16px; overflow:auto; border-radius:5px; }
     .hint { color:#aab4ca; }
+    .store { margin:34px 0; padding:20px; background:#11182a; border:1px solid #2d3853; border-radius:8px; }
+    .catalog { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .card { padding:14px; background:var(--panel); border-radius:6px; }
+    .card h3 { margin:0 0 8px; color:var(--cyan); }
+    .card p { min-height:42px; color:#aab4ca; }
+    .card a { display:inline-block; padding:8px 12px; background:var(--cyan); color:#071018; border-radius:4px; font-weight:700; text-decoration:none; }
+    .card a.disabled { opacity:.45; pointer-events:none; }
   </style>
 </head>
 <body>
   <header><strong>Bandolero 3DS</strong> · Generador de extensiones .ban3</header>
   <main>
-    <p class="hint">Genera un manifiesto de datos seguro. La aplicación lo lee desde
+    <p class="hint">Genera un manifiesto de dato seguro. La aplicación lo lee desde
       <code>sdmc:/3ds/bandolero/extensions/</code>; no se permite ni se ejecuta código.</p>
+    <section class="store" id="store">
+      <h2>Tienda de extensiones</h2>
+      <p class="hint">Catálogo manual: cada entrada enlaza a un archivo .ban3 publicado por su autor.</p>
+      <div class="catalog" id="catalog"></div>
+    </section>
     <form id="generator">
       <label>ID<input id="id" required pattern="[A-Za-z0-9._\-]+" value="mi-extension"></label>
       <label>Nombre visible<input id="name" required value="Mi extensión"></label>
@@ -52,6 +64,38 @@
       return fields.map(key => `${key}=${$(key).value.replace(/[\r\n]/g, ' ')}`).join('\n') + '\n';
     }
     function update() { $('preview').textContent = manifest(); }
+    function catalogManifest(item) {
+      return [
+        `id=${item.id}`, `name=${item.name}`, `extension=.ban`,
+        `theme=${item.theme}`, `background=${item.background}`,
+        `panel=${item.panel}`, `accent=${item.accent}`,
+        `text=#f4f7ff`, `cyan=${item.cyan}`, `description=${item.description}`
+      ].join('\n') + '\n';
+    }
+    const extensionCatalog = [
+      {id:'aurora', name:'Aurora Boreal', description:'Tema azul nocturno con acentos verdes.', theme:'Aurora Boreal', background:'#071b2b', panel:'#123b52', accent:'#48e0b2', cyan:'#65d9ff'},
+      {id:'arcade', name:'Arcade Sunset', description:'Colores retro para sesiones de código.', theme:'Arcade Sunset', background:'#24102e', panel:'#472052', accent:'#ff5f8f', cyan:'#ffc857'},
+      {id:'forest', name:'Bosque Pixel', description:'Paleta verde de alto contraste.', theme:'Bosque Pixel', background:'#0b2118', panel:'#16452d', accent:'#a6e22e', cyan:'#5de4c7'},
+      {id:'ocean', name:'Océano Profundo', description:'Interfaz fría y relajada para escribir.', theme:'Océano Profundo', background:'#07152d', panel:'#102c55', accent:'#4f8cff', cyan:'#63e6ff'},
+      {id:'ember', name:'Brasa', description:'Tema cálido inspirado en una consola retro.', theme:'Brasa', background:'#29110b', panel:'#512216', accent:'#ff7043', cyan:'#ffd166'}
+    ];
+    function renderCatalog() {
+      $('catalog').innerHTML = extensionCatalog.map(item => {
+        return `<article class="card"><h3>${item.name}</h3><p>${item.description}</p>` +
+          `<button type="button" data-extension="${item.id}">Descargar .ban3</button></article>`;
+      }).join('');
+      document.querySelectorAll('[data-extension]').forEach(button => {
+        button.addEventListener('click', () => {
+          const item = extensionCatalog.find(entry => entry.id === button.dataset.extension);
+          const blob = new Blob([catalogManifest(item)], {type:'text/plain;charset=utf-8'});
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `${item.id}.ban3`;
+          link.click();
+          URL.revokeObjectURL(link.href);
+        });
+      });
+    }
     fields.forEach(key => $(key).addEventListener('input', update));
     $('generator').addEventListener('submit', event => {
       event.preventDefault();
@@ -64,6 +108,7 @@
       URL.revokeObjectURL(link.href);
     });
     update();
+    renderCatalog();
   </script>
 </body>
 </html>

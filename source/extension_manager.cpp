@@ -28,6 +28,7 @@ void read_manifest(const std::string& path, std::vector<ExtensionInfo>& result) 
         if (key == "id") current.id = value;
         else if (key == "name") current.name = value;
         else if (key == "extension") current.extension = value;
+        else if (key == "description") current.description = value;
         else if (key == "theme") current.theme = value;
         else if (key == "background") current.background = value;
         else if (key == "panel") current.panel = value;

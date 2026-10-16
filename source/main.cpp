@@ -11,14 +11,130 @@
 #include "config.h"
 
 #define BUFFER_SIZE 1025    //Notepad's line limit + \0
-#define MAX_BOTTOM_SIZE 28
+#define MAX_BOTTOM_SIZE (VISIBLE_EDITOR_LINES - 1)
 
 int scroll = 0;
 bool fast_scroll = false;
 bool show_about = false; // Nueva variable para controlar la pestaña
+unsigned int konami_progress = 0;
+bool dedication_consumed = false;
+bool dedication_screen = false;
+
+bool update_konami_code(u32 keys) {
+    static const u32 sequence[] = {
+        KEY_DUP, KEY_DUP, KEY_DDOWN, KEY_DDOWN, KEY_DLEFT,
+        KEY_DRIGHT, KEY_DLEFT, KEY_DRIGHT, KEY_B, KEY_A
+    };
+    if (keys & sequence[konami_progress]) {
+        ++konami_progress;
+        if (konami_progress == sizeof(sequence) / sizeof(sequence[0])) {
+            konami_progress = 0;
+            return true;
+        }
+    } else if (keys & (KEY_DUP | KEY_DDOWN | KEY_DLEFT | KEY_DRIGHT |
+                       KEY_A | KEY_B)) {
+        konami_progress = (keys & KEY_DUP) ? 1 : 0;
+    }
+    return false;
+}
 
 void move_down(const File& file);
 void move_up(const File& file);
+
+bool contains_extension(const std::vector<std::string>& ids,
+                        const std::string& id) {
+    return std::find(ids.begin(), ids.end(), id) != ids.end();
+}
+
+const std::vector<std::string>& supported_text_extensions() {
+    static const std::vector<std::string> extensions = {
+        ".txt", ".md", ".markdown", ".ini", ".cfg", ".conf", ".log",
+        ".csv", ".json", ".xml", ".yaml", ".yml", ".toml", ".html",
+        ".htm", ".css", ".js", ".ts", ".c", ".h", ".cpp", ".hpp",
+        ".cc", ".java", ".py", ".rb", ".lua", ".sh", ".bat", ".ps1",
+        ".rs", ".go", ".swift", ".kt", ".asm", ".s", ".sql", ".tex",
+        ".gitignore", ".makefile"
+    };
+    return extensions;
+}
+
+bool supported_text_extension(const std::string& extension) {
+    const std::vector<std::string>& supported = supported_text_extensions();
+    return std::find(supported.begin(), supported.end(), extension) != supported.end();
+}
+
+std::string choose_save_extension() {
+    const std::vector<std::string>& formats = supported_text_extensions();
+    unsigned int selected = 0;
+    while (aptMainLoop()) {
+        print_format_menu(formats[selected]);
+        hidScanInput();
+        const u32 keys = hidKeysDown();
+        if (keys & KEY_B)
+            return std::string();
+        if ((keys & KEY_DDOWN) && selected + 1 < formats.size())
+            ++selected;
+        if ((keys & KEY_DUP) && selected > 0)
+            --selected;
+        if (keys & KEY_A)
+            return formats[selected];
+        gspWaitForVBlank();
+    }
+    return std::string();
+}
+
+bool choose_file(std::string& filename) {
+    std::vector<std::string> files = list_files();
+    unsigned int selected = 0;
+    while (aptMainLoop()) {
+        print_file_browser(files, selected);
+        hidScanInput();
+        const u32 keys = hidKeysDown();
+        if (keys & KEY_B) {
+            if (file_io_directory() == bandolero_files_path())
+                return false;
+            std::string parent = file_io_directory();
+            while (!parent.empty() && parent.back() == '/')
+                parent.pop_back();
+            const std::string::size_type slash = parent.find_last_of('/');
+            if (slash != std::string::npos) {
+                parent.erase(slash + 1);
+                file_io_set_directory(parent);
+            }
+            files = list_files();
+            selected = 0;
+            continue;
+        }
+        if ((keys & KEY_DDOWN) && selected + 1 < files.size())
+            ++selected;
+        if ((keys & KEY_DUP) && selected > 0)
+            --selected;
+        if (keys & KEY_TOUCH) {
+            touchPosition touch;
+            hidTouchRead(&touch);
+            if (touch.px >= 18 && touch.px <= 382 && touch.py >= 48 &&
+                touch.py < 218) {
+                const unsigned int row = (touch.py - 48) / 11;
+                const unsigned int first = selected > 12 ? selected - 12 : 0;
+                if (first + row < files.size())
+                    selected = first + row;
+            }
+        }
+        if ((keys & KEY_A) && !files.empty()) {
+            const std::string& selected_name = files[selected];
+            if (!selected_name.empty() && selected_name.back() == '/') {
+                file_io_set_directory(file_io_directory() + selected_name);
+                files = list_files();
+                selected = 0;
+            } else {
+                filename = selected_name;
+                return true;
+            }
+        }
+        gspWaitForVBlank();
+    }
+    return false;
+}
 
 unsigned int curr_line = 0;
 
@@ -72,7 +188,10 @@ int main(int argc, char **argv)
     }
 
     File file;      //Use as default file
-    const std::vector<ExtensionInfo> extensions = load_extension_catalog();
+    const std::vector<ExtensionInfo> extensions =
+        config_extensions_enabled() ? load_extension_catalog() :
+        std::vector<ExtensionInfo>();
+    config_log_event("Aplicación abierta");
     std::vector<std::string> extension_names;
     for (const ExtensionInfo& extension : extensions) {
         if (!extension.name.empty())
@@ -85,6 +204,35 @@ int main(int argc, char **argv)
                             theme.text, theme.cyan);
     }
 
+    std::vector<std::string> known_extensions = config_known_extensions();
+    if (config_extension_notifications()) {
+        for (const ExtensionInfo& extension : extensions) {
+            if (extension.id.empty() || contains_extension(known_extensions, extension.id))
+                continue;
+            while (aptMainLoop()) {
+                print_extension_notice(extension.name.empty() ? extension.id :
+                                           extension.name,
+                                       extension.description);
+                hidScanInput();
+                const u32 notice_keys = hidKeysDown();
+                if (notice_keys & KEY_A)
+                    break;
+                gspWaitForVBlank();
+            }
+            known_extensions.push_back(extension.id);
+            config_log_event("Nueva extensión detectada: " +
+                             (extension.name.empty() ? extension.id : extension.name));
+        }
+    } else {
+        for (const ExtensionInfo& extension : extensions) {
+            if (!extension.id.empty() &&
+                !contains_extension(known_extensions, extension.id))
+                known_extensions.push_back(extension.id);
+        }
+    }
+    config_set_known_extensions(known_extensions);
+    config_commit();
+
     update_screen(file, curr_line);
 
 	while (aptMainLoop())
@@ -94,9 +242,52 @@ int main(int argc, char **argv)
 
 		u32 kDown = hidKeysDown();
         u32 kHeld = hidKeysHeld();
+        const bool dedication_unlocked = update_konami_code(kDown);
+        if (dedication_unlocked && !dedication_consumed) {
+            dedication_consumed = true;
+            dedication_screen = true;
+            show_about = true;
+            print_dedication();
+            kDown = 0;
+        }
+
+		if (kDown & KEY_TOUCH) {
+		    touchPosition touch;
+		    hidTouchRead(&touch);
+		    if (touch.py >= 72 && touch.py < 91) {
+		        if (touch.px < 160)
+		            kDown |= KEY_A;
+		        else
+		            kDown |= KEY_B;
+		    } else if (touch.py >= 95 && touch.py < 114) {
+		        if (touch.px < 160)
+		            kDown |= KEY_X;
+		        else
+		            kDown |= KEY_Y;
+		    } else if (touch.py >= 118 && touch.py < 137) {
+		        if (touch.px < 160)
+		            kDown |= KEY_R;
+		        else
+		            kHeld |= KEY_L;
+		    } else if (touch.py >= 145 && touch.py < 164) {
+		        if (touch.px < 160)
+		            kDown |= KEY_DDOWN;
+		        else
+		            kDown |= KEY_SELECT;
+		    }
+		}
 
         if (kDown & KEY_START)
             break;
+
+        if (dedication_screen) {
+            if (kDown & (KEY_A | KEY_B | KEY_SELECT)) {
+                dedication_screen = false;
+                print_about();
+            }
+            gspWaitForVBlank();
+            continue;
+        }
 
         // Cambiar pestaña con SELECT
         if (kDown & KEY_SELECT) {
@@ -111,6 +302,28 @@ int main(int argc, char **argv)
         // Si está activa la pestaña de Acerca de, ignorar otras entradas
         if (show_about) {
             AppLanguage language = localization_language();
+            if (kDown & KEY_TOUCH) {
+                touchPosition about_touch;
+                hidTouchRead(&about_touch);
+                if (about_touch.py >= 190 && about_touch.py < 211 &&
+                    about_touch.px < 155) {
+                    config_set_extension_notifications(
+                        !config_extension_notifications());
+                    config_commit();
+                    print_about();
+                } else if (about_touch.py >= 212 && about_touch.py < 239) {
+                    if (about_touch.px < 155) {
+                        show_about = false;
+                        update_screen(file, curr_line);
+                    } else if (about_touch.px >= 160) {
+                        language = static_cast<AppLanguage>((language + 1) % 6);
+                        localization_set_language(language);
+                        config_set_language(language);
+                        config_commit_language();
+                        print_about();
+                    }
+                }
+            }
             if (kDown & KEY_R)
                 language = static_cast<AppLanguage>((language + 1) % 6);
             if (kDown & KEY_L)
@@ -119,6 +332,12 @@ int main(int argc, char **argv)
                 localization_set_language(language);
                 config_set_language(language);
                 config_commit_language();
+                print_about();
+            }
+            if (kDown & KEY_X) {
+                config_set_extension_notifications(
+                    !config_extension_notifications());
+                config_commit();
                 print_about();
             }
             gspWaitForVBlank();
@@ -149,7 +368,9 @@ int main(int argc, char **argv)
                 }
                 //Need a char array to output to keyboard
                 char current_text[BUFFER_SIZE] = "";
-                copy(line->begin(), line->end(), current_text);
+                const size_t copy_length = std::min(line->size(), sizeof(current_text) - 1);
+                std::copy(line->begin(), line->begin() + copy_length, current_text);
+                current_text[copy_length] = '\0';
                 swkbdSetInitialText(&swkbd, current_text);
             }
             didit = true;
@@ -220,7 +441,26 @@ int main(int argc, char **argv)
             std::string filename = "";
             for (int i = 0; mybuf[i] != '\0'; i++)
                 filename.push_back(mybuf[i]);
-            filename = normalize_text_filename(filename);
+            const std::string::size_type dot = filename.find_last_of('.');
+            const std::string extension =
+                dot == std::string::npos ? std::string() : filename.substr(dot);
+            std::string selected_extension = extension;
+            if (selected_extension.empty() ||
+                !supported_text_extension(selected_extension)) {
+                selected_extension = choose_save_extension();
+                if (selected_extension.empty()) {
+                    update_screen(file, curr_line);
+                    continue;
+                }
+                if (extension.empty())
+                    filename += selected_extension;
+                else {
+                    filename.erase(dot);
+                    filename += selected_extension;
+                }
+            }
+            if (filename.find('.') == std::string::npos)
+                filename += ".txt";
 
             //Write out characters to file
             bool success = write_to_file(filename, file);
@@ -239,22 +479,21 @@ int main(int argc, char **argv)
         }
 
         if (kDown & KEY_Y) {
-            //Similar code to pressing X, see about refactoring
-            //Open a file
             curr_line = 0;
             scroll = 0;
-            //Clear buffer
-            memset(mybuf, '\0', BUFFER_SIZE);
-
-            //Get file name
-           
-            swkbdSetHintText(&swkbd, tr(TEXT_FILENAME_HINT)); 
-            button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
-            std::string filename = "";
-            for (int i = 0; mybuf[i] != '\0'; i++)
-                filename.push_back(mybuf[i]);
+            std::string filename;
+            if (!choose_file(filename)) {
+                update_screen(file, curr_line);
+                continue;
+            }
             File oldfile = file;
             file = open_file(filename);
+            const std::string::size_type extension_start = filename.find_last_of('.');
+            const std::string extension = extension_start == std::string::npos
+                ? std::string() : filename.substr(extension_start);
+            display_set_markdown_preview(extension == ".md" ||
+                                         extension == ".markdown");
+            config_log_event("Archivo abierto: " + filename);
             
             //print functions here seem to crash the program
             if (file.read_success) {
@@ -334,11 +573,12 @@ void move_down(const File& file) {
     if (curr_line < file.lines.size() - 1) {
         if (fast_scroll) {
             curr_line = file.lines.size()-1;
-            scroll = curr_line - MAX_BOTTOM_SIZE;
+            scroll = curr_line > MAX_BOTTOM_SIZE ? curr_line - MAX_BOTTOM_SIZE : 0;
 
         } else {
 
-            if ( (curr_line - scroll >= MAX_BOTTOM_SIZE) && (curr_line < file.lines.size() ) ) {
+            if (curr_line >= static_cast<unsigned int>(scroll + MAX_BOTTOM_SIZE) &&
+                curr_line < file.lines.size()) {
                 scroll++;
                 curr_line++;
             } else {

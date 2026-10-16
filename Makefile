@@ -34,7 +34,7 @@ DATA		:=	data
 INCLUDES	:=	include
 ROMFS		:=	romfs
 APP_TITLE	:= Bandolero 3DS
-APP_DESCRIPTION	:= Un editor de texto para 3DS - Version 2.0
+APP_DESCRIPTION	:= Un editor de texto para 3DS - Version 2.3.1
 APP_AUTHOR 	:= Tristanabs
 PROFILE		?= citro2d
 

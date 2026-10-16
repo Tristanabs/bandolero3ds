@@ -1,9 +1,19 @@
 #include <fstream>
 #include "file_io.h"
 #include "config.h"
+#include <dirent.h>
+#include <algorithm>
+
+namespace {
+std::string current_directory = bandolero_files_path();
+
+std::string document_path(const std::string& filename) {
+    return current_directory + filename;
+}
+}
 
 bool write_to_file(const std::string& filename, const File& file) {
-    const std::string path = std::string(bandolero_files_path()) + filename;
+    const std::string path = document_path(filename);
     std::ofstream new_file(path.c_str(), std::ios::binary | std::ios::trunc);
     if (!new_file.is_open()) {
         return false;
@@ -21,7 +31,7 @@ bool write_to_file(const std::string& filename, const File& file) {
 }
 
 File open_file(const std::string& filename) {
-    const std::string path = std::string(bandolero_files_path()) + filename;
+    const std::string path = document_path(filename);
     std::ifstream file_open(path.c_str(), std::ios::binary);
     File file;
     // The constructor provides the editable empty line. Replace it with
@@ -55,4 +65,38 @@ File open_file(const std::string& filename) {
 
     file.read_success = true;
     return file;
+}
+
+std::vector<std::string> list_files() {
+    std::vector<std::string> result;
+    DIR* directory = opendir(current_directory.c_str());
+    if (!directory)
+        return result;
+    struct dirent* entry = nullptr;
+    while ((entry = readdir(directory)) != nullptr) {
+        const std::string name(entry->d_name);
+        if (name == "." || name == "..")
+            continue;
+        if (entry->d_type == DT_DIR)
+            result.push_back(name + "/");
+        else if (entry->d_type == DT_REG || entry->d_type == DT_UNKNOWN)
+            result.push_back(name);
+    }
+    closedir(directory);
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+void file_io_set_directory(const std::string& path) {
+    DIR* directory = opendir(path.c_str());
+    if (!directory)
+        return;
+    closedir(directory);
+    current_directory = path;
+    if (current_directory.empty() || current_directory.back() != '/')
+        current_directory += '/';
+}
+
+const std::string& file_io_directory() {
+    return current_directory;
 }
