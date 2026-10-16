@@ -1,6 +1,47 @@
 # Bandolero 3DS
 
 Editor de texto para Nintendo 3DS, desarrollado por Tristanabs. Bandolero 3DS permite crear, abrir, editar, buscar y guardar archivos de texto directamente en la tarjeta SD.
+<p align="center">
+  <!-- Badge: Versión Actual -->
+  <a href="https://github.com/Tristanabs/bandolero3ds/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Tristanabs/bandolero3ds?style=for-the-badge&color=0070f3&label=VERSI%C3%93N%20ACTUAL&logo=github" alt="Versión Actual" />
+  </a>
+
+  <!-- Badge: Universal-DB -->
+  <a href="https://db.universal-team.net/3ds/bandolero-3ds">
+    <img src="https://img.shields.io/badge/UNIVERSAL--DB-VER%20EN%20DB-00D1B2?style=for-the-badge&logo=nintendo-3ds&logoColor=white" alt="Ver en Universal-DB" />
+  </a>
+
+  <!-- Badge: Descarga por QR -->
+  <a href="#-instalación-rápida-mediante-qr-fbi">
+    <img src="https://img.shields.io/badge/DESCARGA%20POR-QR%20CODE-E4000F?style=for-the-badge&logo=qr-code&logoColor=white" alt="Descarga por QR" />
+  </a>
+
+  <!-- Badge: Discord HB Central -->
+  <a href="https://dc.gg/hbcentral">
+    <img src="https://img.shields.io/badge/DISCORD-HB%20CENTRAL-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord HB Central" />
+  </a>
+
+  <!-- Badge: Plataforma 3DS / 2DS -->
+  <img src="https://img.shields.io/badge/PLATAFORMA-NINTENDO%203DS%20%2F%202DS-FF0000?style=for-the-badge&logo=nintendo3ds&logoColor=white" alt="Plataforma Nintendo 3DS" />
+
+  <!-- Badge: Licencia MIT -->
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/Tristanabs/bandolero3ds?style=for-the-badge&color=orange&label=LICENCIA" alt="Licencia" />
+  </a>
+
+<!-- Badge: Flagwave Open Code con Isotipo Vectorial Integrado -->
+  <a href="https://www.flagwave.es/open-code">
+    <img src="https://img.shields.io/badge/FLAGWAVE-OPEN%20CODE-e63333?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0zIDNoM3YxOEgzVjN6bTUtMmgzdjNoLTNWM3ptNSAwaDN2M2gtM1Yzem0tNSA1aDN2MTBoLTNWOXptNSA1aDN2NWgtM1YxNHoiLz48L3N2Zz4=&labelColor=1a1a1a" alt="Flagwave Open Code" />
+  </a>
+  
+## Instalación rápida mediante QR (FBI)
+
+Escanea el siguiente código QR desde la aplicación **FBI** en tu Nintendo 3DS (`Remote Install` -> `Scan QR Code`):
+
+<p align="center">
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://github.com/Tristanabs/bandolero3ds/releases/latest/download/bandolero3ds.cia" alt="Código QR de instalación para FBI" width="200" />
+</p>
 
 ## Versión actual
 
@@ -166,22 +207,20 @@ sdmc:/3ds/bandolero/
 - [Generador `.ban3` ](./EXTENSION-GENERATOR.md)
 - [Generador web](https://bandolero.flagwave.es/)
 
-## Créditos
+##  Créditos y Agradecimientos
 
-Creado por [Tristanabs](https://github.com/Tristanabs).
+*  **Desarrollado por:** [Tristanabs](https://github.com/Tristanabs)
+*  **Basado originalmente en:** [Notepad 3DS](https://github.com/RMcTn/Notepad3DS) por [RMcTn](https://github.com/RMcTn)
+*  **Agradecimientos especiales:** [Kelonio 3DS](https://www.youtube.com/@Kelonio3DS)
 
-Basado en el trabajo original de [Notepad 3DS](https://github.com/RMcTn/Notepad3DS).
+---
 
-Agradecimientos a [Kelonio 3DS](https://www.youtube.com/@Kelonio3DS).
+##  Soporte y Comunidad
 
-## Soporte
+Para cualquier duda, asistencia técnica o reporte de errores, visita la comunidad oficial de **Homebrew Central**:
 
-Para soporte, utiliza el servidor Homebrew Central:
-
-<https://dc.gg/hbcentral>
-
-## Flagwave Open Code
-
-Bandolero 3DS está adherido a Flagwave Open Code.
-
-[![Flagwave Open Code](https://i.imgur.com/8OhDyso.png)](https://www.flagwave.es/open-code)
+<p align="center">
+  <a href="https://dc.gg/hbcentral">
+    <img src="https://img.shields.io/badge/DISCORD-UNIRSE%20A%20HB%20CENTRAL-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord HB Central" />
+  </a>
+</p>
